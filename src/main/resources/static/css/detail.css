@@ -1,0 +1,81 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: '幼圆';
+}
+
+#detail {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    margin: 0 auto;
+}
+
+.page-title {
+    top: 15px;
+    border-top: 15px solid #ccc;
+    border-bottom: 15px solid #ccc;
+    padding-left: 30px;
+    color: #fff;
+    font-size: 40px;
+    line-height: 80px;
+    background: #3C8DBC;
+}
+
+#level > div {
+    margin-top: 20px;
+    margin-right: 20px;
+    float: left;
+}
+
+#main {
+    padding: 20px;
+    height: 180vh;
+    background: #eee;
+    width: 70%;
+    margin: 0 auto;
+    overflow-y: auto;
+}
+
+li.el-menu-item {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.el-card {
+    border: 3px solid #3C8DBC;
+    border-radius: 0.6em;
+    padding: 20px;
+    margin-top: 10px;
+    font-size: 25px;
+    height: auto;
+}
+
+.el-card > div {
+    overflow-y: auto;
+}
+
+#main > div {
+    margin-left: 30px;
+    margin-right: 30px;
+    margin-bottom: 80px;
+}
+
+#process-bar {
+    width: 14%;
+    margin-top: 30px;
+    height: 300px;
+    position: absolute;
+}
+#ops {
+    text-align: right;
+}
+.el-button {
+    font-family: '幼圆';
+    font-size: 30px;
+}

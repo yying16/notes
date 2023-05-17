@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>错题集</title>
+
+</head>
+<body>
+
+<div id="app">
+    <el-main>
+        <el-form :inline="true" :model="formInLine" class="demo-form-inline">
+            <el-form-item>
+<!--                <el-select placeholder="标签" v-model="formInLine.tag">-->
+<!--                    <el-option :label="item" :value="item" v-for="item in tagList" :key="item"></el-option>-->
+<!--                </el-select>-->
+                <el-input placeholder="标签" v-model="formInLine.tag"></el-input>
+            </el-form-item>
+            <el-form-item>
+<!--                <el-select placeholder="优先级" v-model="formInLine.priority">-->
+<!--                    <el-option label="高优先级" value="3"></el-option>-->
+<!--                    <el-option label="中优先级" value="2"></el-option>-->
+<!--                    <el-option label="低优先级" value="1"></el-option>-->
+<!--                </el-select>-->
+                <el-input placeholder="优先级" v-model="formInLine.priority"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-input placeholder="关键字" v-model="formInLine.content"></el-input>
+            </el-form-item>
+
+            <el-form-item>
+                <el-button type="primary" @click="getNotes">查询</el-button>
+            </el-form-item>
+        </el-form>
+
+        <!--批量删除,新增按钮-->
+        <el-row>
+            <el-button type="danger" plain @click="multiDeleteNotes">批量删除</el-button>
+            <el-button type="primary" plain @click="addNotes">新增</el-button>
+        </el-row>
+
+
+        <el-table :data="notes"
+                  style="width: 100%"
+                  @selection-change="handleSelectionChange"
+                  stripe>
+            <el-table-column type="selection" width="55">
+            </el-table-column>
+            <el-table-column prop="notesId" label="错题编号" align="center" width="140">
+            </el-table-column>
+            <el-table-column prop="notesTitle" label="标题" align="center">
+            </el-table-column>
+            <el-table-column prop="priority" label="优先级" align="center" :sortable="'priority'" width="200">
+            </el-table-column>
+            <el-table-column prop="notesGroup" label="标签" align="center" :sortable="'notesGroup'" width="180">
+            </el-table-column>
+            <el-table-column prop="updateTime" label="更新时间" align="center" :sortable="'updateTime'" width="200">
+            </el-table-column>
+            <el-table-column label="操作" align="center" width="280">
+                <template slot-scope="scope">
+                    <el-button type="success" size="mini" @click="detail(scope.row)">查看</el-button>
+                    <el-button type="primary" size="mini" @click="editNotes(scope.row)">编辑</el-button>
+                    <el-button type="danger" size="mini" @click="deleteNotes(scope.row)">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+
+        <!--分页工具条-->
+        <el-pagination
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+                :current-page="pagination.currentPage"
+                :page-sizes="[5, 10, 15]"
+                :page-size="5"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="pagination.total">
+        </el-pagination>
+
+    </el-main>
+</div>
+
+<script src="../js/vue.js"></script>
+<script src="../js/index.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<link rel="stylesheet" href="../plugins/elementui/index.css">
+<script src="../plugins/elementui/index.js"></script>
+
+
+<script>
+    const vue = new Vue({
+        el: "#app",
+        data: {
+            //要展示的所有图书数据
+            notes: [],
+            onlineUser: null,
+            //存放复选框勾中的数据
+            multipleSelection: [],
+            //查询表单数据
+            formInLine: {
+                tag: '', // 标签
+                priority: '', // 优先级
+                content: '' //搜索内容
+            },
+
+            // 当前页码
+            pagination: {
+                currentPage: 1,
+                pageSize: 5,
+                total: 0
+            }
+        },
+
+        //钩子函数，VUE对象初始化完成后自动执行 /*OK*/
+        created() {
+            //调用查询全部
+            this.onlineUser = window.parent.getOnlineUser()
+            this.getAllNotes()
+        },
+
+        methods: {
+            //查询所有错题
+            getAllNotes() {
+                axios.post('/notes/getNotes/'+this.pagination.currentPage+'/'+this.pagination.pageSize, {
+                    account: this.onlineUser.account,
+                    condition: {},
+                    order: 0,
+                    orderCondition: ""
+                }).then(r => {
+                    this.pagination.currentPage = r.data.current;
+                    this.pagination.pageSize = r.data.size;
+                    this.pagination.total = r.data.total;
+                    console.log(r.data)
+                    this.notes = r.data.records;
+                })
+            },
+            // 编辑单个错题
+            editNotes(row) {
+                localStorage.setItem('curRowId', row.notesId)
+                location.href = 'http://localhost:8080/pages/edit.html'
+            },
+            //条件查询错题
+            getNotes() {
+                axios.post(`/notes/getNotes/${this.pagination.currentPage}/${this.pagination.pageSize}`, {
+                    account: this.onlineUser.account,
+                    condition: {
+                        notesGroup: this.formInLine.tag,
+                        priority: this.formInLine.priority,
+                        content: this.formInLine.content
+                    },
+                    order: 0,
+                    orderCondition: ""
+                }).then(r => {
+                    this.pagination.currentPage = r.data.current;
+                    this.pagination.pageSize = r.data.size;
+                    this.pagination.total = r.data.total;
+                    console.log(r.data)
+                    this.notes = r.data.records;
+                    this.$message.success("已完成刷新");
+                })
+            },
+            detail(row) {
+                localStorage.setItem('curRowId', row.notesId)
+                location.href = "http://localhost:8080/pages/notesDetail.html"
+                this.$message.success("跳转到详情界面")
+            },
+            addNotes() {
+                location.href = "http://localhost:8080/pages/add.html"
+                this.$message.success("跳转到添加错题界面");
+            },
+            multiDeleteNotes() {
+                var list = [];
+                for (let i = 0; i < this.multipleSelection.length; ++i) {
+                    list.push(this.multipleSelection[i].notesId);
+                }
+                //弹出警告框,让用户进行二次确认
+                this.$confirm('确认删除这些错题吗?', 'Tips', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //ajax发送批量删除请求
+                    axios({
+                        data: list,
+                        method: 'DELETE',
+                        url: "/notes/multiDeleteNotes"
+                    }).then((res) => {
+                        if (res.data) {
+                            this.$message.success("删除成功");
+                        } else {
+                            this.$message.error("删除失败");
+                        }
+                    }).finally(() => {
+                        this.getAllNotes();
+                    });
+
+                }).catch(() => {
+                    this.$message.info("已取消删除");
+                })
+            },
+            deleteNotes(row) {
+                //弹出警告框,让用户进行二次确认
+                this.$confirm('确认删除这个错题吗?', 'Tips', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //ajax发送批量删除请求
+                    axios.delete('/notes/deleteNotes/' + row.notesId).then((res) => {
+                        if (res.data) {
+                            this.$message.success("删除成功");
+                        } else {
+                            this.$message.error("删除失败");
+                        }
+                    }).finally(() => {
+                        this.getAllNotes();
+                    });
+
+                }).catch(() => {
+                    this.$message.info("已取消删除");
+                })
+            },
+            <!--分页-->
+            handleSizeChange(val) { //切换当前页显示条数
+                this.pagination.pageSize = val;
+                this.getAllNotes();
+            },
+            handleCurrentChange(val) { //切换页码值
+                this.pagination.currentPage = val;
+                this.getAllNotes();
+            },
+
+            //复选框选中后执行的方法 /*OK*/
+            handleSelectionChange(val) {
+                this.multipleSelection = val;
+            }
+        }
+    });
+</script>
+</body>
+</html>

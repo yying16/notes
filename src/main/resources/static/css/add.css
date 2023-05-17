@@ -1,0 +1,84 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+#add {
+    background: #eee;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.page-title {
+    top: 15px;
+    border-top: 15px solid #ccc;
+    border-bottom: 15px solid #ccc;
+    padding-left: 30px;
+    font-family: '幼圆';
+    color: #fff;
+    font-size: 40px;
+    line-height: 80px;
+    background: #3C8DBC;
+}
+
+#middle {
+    text-align: center;
+    border-top: 30px solid #fff;
+    padding-top: 20px;
+    margin: 0 auto;
+    width: 1600px;
+    background: #bbb;
+    z-index: 3;
+}
+#middle .el-form .el-form-item label {
+    font-size: 25px;
+    color: #fff;
+    margin-left: 50px;
+    font-weight: bolder;
+    font-family: '幼圆';
+}
+
+#main {
+    margin: 0 auto;
+    width: 1600px;
+    background: #fff;
+}
+#main > div {
+    z-index: 0;
+    margin: 0 auto;
+    border-radius: 0.4em;
+    border: 3px solid #003558;
+    width: 1400px;
+}
+#main > h2 {
+    margin-left: 120px;
+    font-size: 35px;
+    font-weight: bolder;
+    padding-top: 50px;
+    margin-bottom: 12px;
+    font-family: '幼圆';
+}
+
+#topDiv {
+    z-index: 2;
+    text-align: center;
+    padding-top: 15px;
+    margin: 0 auto;
+    width: 1600px;
+    background: #fff;
+}
+#topDiv .el-button {
+    font-family: '幼圆';
+    font-size: 25px;
+    margin-right: 20px;
+}
+.el-message-box {
+    margin: 30px auto;
+    display: block;
+    z-index: 2;
+}

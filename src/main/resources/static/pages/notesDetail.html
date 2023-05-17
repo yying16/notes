@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="../plugins/elementui/index.css">
+        <link rel="stylesheet" href="../css/detail.css">
+        <title>错题详情</title>
+    </head>
+
+    <script src="../js/vue.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+
+    <body>
+        <div id="detail">
+            <h1 class="page-title">错题详情</h1>
+
+            <!-- 竖型导航菜单 -->
+            <div id="process-bar">
+                <el-menu background-color="#eee" text-color="#330999">
+                    <el-menu-item index="1" @click="goAuchor('#subject')">题目内容</el-menu-item>
+                    <el-menu-item index="2" @click="goAuchor('#respond')">我的答案</el-menu-item>
+                    <el-menu-item index="3" @click="goAuchor('#answer')">标准答案</el-menu-item>
+                    <el-menu-item index="4" @click="goAuchor('#summary')">分析总结</el-menu-item>
+                </el-menu>
+            </div>
+
+            <!-- 展示题目内容、答案及标准答案以及分析总结 -->
+            <div id="main">
+                <div id="top">
+                    <h1 style="color: #005; font-size: 45px;" id="title">{{ notes.notesTitle }}</h1>
+                    <div id="level" style="float: left;">
+                        <div id="d1" style="border: 3px solid rgb(0,112,192); border-radius: 0.5em; padding: 10px; font-size: 20px; font-weight: bold;">分组内容: {{ notes.notesGroup }}</div>
+                        <div id="d2" style="border: 3px solid rgb(237,125,49); border-radius: 0.5em; padding: 10px; font-size: 20px; font-weight: bold;">优先级: {{ notes.priority }}</div>
+                        <div style="font-size: 20px; padding: 10px; color: rgb(68,84,106);">更新时间: {{ notes.updateTime }}</div>
+                    </div>
+                </div>
+                <div>
+                    <h1 style="color: #751;" id="subject">题目内容</h1>
+                    <el-card>
+                        <div v-html="notes.subject"></div>
+                    </el-card>
+                </div>
+                <div>
+                    <h1 style="color: #f51;" id="respond">我的答案</h1>
+                    <el-card>
+                        <div v-html="notes.respond"></div>
+                    </el-card>
+                </div>
+                <div>
+                    <h1 style="color: #f8f;" id="answer">标准答案</h1>
+                    <el-card>
+                        <div v-html="notes.answer"></div>
+                    </el-card>
+                </div>
+                <div>
+                    <h1 style="color: #059;" id="summary">分析总结</h1>
+                    <el-card>
+                        <div v-html="notes.summary"></div>
+                    </el-card>
+                </div>
+                <div id="ops">
+                    <el-button type="warning" @click="back">退出</el-button>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script type="text/javascript">
+        window.onload = () => {
+
+        }
+        var v = new Vue({
+            el: '#detail',
+            data() {
+                return {
+                    notes: {
+                        notesId: '',
+                        notesTitle: '',
+                        priority: '',
+                        notesGroup: '',
+                        promulgator: '',
+                        subject: '',
+                        respond: '',
+                        answer: '',
+                        summary: '',
+                        updateTime: ''
+                    }
+                }
+            },
+            methods: {
+                back() {
+                    location.href="http://localhost:8080/pages/MyNotes.html"
+                },
+                goAuchor(id) {
+                    console.log(id)
+                    var auchor = this.$el.querySelector(id)
+                    console.log(auchor.offsetTop)
+                    console.log(auchor.offsetHeight)
+
+                    var mainDiv = document.querySelector('#main')
+                    mainDiv.scrollTop = auchor.offsetTop - 3 * auchor.offsetHeight
+                }
+            },
+            created() {
+                // 获取当前的发布者账号
+                let onlineUser = window.parent.getOnlineUser()
+                this.notes.promulgator = onlineUser.account
+            },
+            mounted() {
+                // 获取传来的错题id 并根据此id查询错题 回显其所有内容
+                var curId = localStorage.getItem('curRowId')
+                axios({
+                    method: 'GET',
+                    url: `/notes/getNotesById/${curId}`
+                }).then(res => {
+                    // 数据回显
+                    this.notes = res.data
+                })
+            }
+        })
+    </script>
+</html>

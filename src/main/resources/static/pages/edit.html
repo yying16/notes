@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../css/add.css">
+    <title>添加错题</title>
+</head>
+
+<script src="../js/vue.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script src="../js/wangeditor.min.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+
+<body>
+<div id="add">
+    <h1 class="page-title">编辑错题</h1>
+
+    <div id="topDiv">
+        <el-button type="success" @click="handleEdit">确认提交&nbsp;&nbsp;<i class="el-icon-check"></i></el-button>
+        <el-button type="danger" @click="handleCancel">取消&nbsp;&nbsp;<i class="el-icon-close"></i></el-button>
+        <el-button type="warning" @click="resetAll">清空&nbsp;&nbsp;<i class="el-icon-warning"></i></el-button>
+    </div>
+
+    <div id="middle">
+        <el-form :inline="true" :rules="rules" ref="notesForm" :model="notes">
+            <el-form-item label="错题标题" prop="notesTitle">
+                <el-input v-model="notes.notesTitle" placeholder="输入错题标题..."></el-input>
+            </el-form-item>
+            <el-form-item label="优先级" prop="priority">
+                <el-input v-model="notes.priority" placeholder="输入错题优先级.."></el-input>
+            </el-form-item>
+            <el-form-item label="分组" prop="notesGroup">
+                <el-input v-model="notes.notesGroup" placeholder="输入分组..."></el-input>
+            </el-form-item>
+        </el-form>
+    </div>
+
+    <div id="main">
+        <!-- 错题内容 -->
+        <h2>错题内容</h2>
+        <div id="subject"></div>
+        <!-- 我的答案 -->
+        <h2>我的答案</h2>
+        <div id="respond"></div>
+        <!-- 标准答案 -->
+        <h2>标准答案</h2>
+        <div id="answer"></div>
+        <!-- 分析总结 -->
+        <h2>分析总结</h2>
+        <div id="summary"></div>
+    </div>
+</div>
+</body>
+
+<script type="text/javascript">
+    const E = window.wangEditor
+    var v = new Vue({
+        el: '#add',
+        data() {
+            return {
+                // 四个富文本框
+                subjectEditor: null,
+                respondEditor: null,
+                answerEditor: null,
+                summaryEditor: null,
+                notes: {
+                    notesId: '',
+                    notesTitle: '', // 错题标题
+                    priority: '', // 优先级
+                    promulgator: '', // 发布者账号
+                    subject: ``, // 错题内容
+                    answer: ``, // 标准答案
+                    respond: ``, // 回答
+                    summary: ``,// 分析汇总
+                    notesGroup: '' // 所在分组
+                },
+                rules: {
+                    notesTitle: [{ required: true, message: '请输入错题标题', trigger: 'blur' }],
+                    priority: [{ required: true, message: '请输入优先级', trigger: 'blur' }],
+                    notesGroup: [{ required: true, message: '请输入错题分组', trigger: 'blur' }]
+                }
+            }
+        },
+        methods: {
+            checkNotesForm() {
+                this.$refs.notesForm.validate(valid => {
+                    if (!valid) return false
+                })
+                return true
+            },
+            handleEdit() {
+                // 先检查topDiv里的信息是否填完(标题/优先级/分组)
+                if(!this.checkNotesForm()) {
+                    this.$message.error('请完善错题标题/优先级/分组输入框内容!')
+                } else {
+                    this.$confirm('确认修改该错题?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.notes.subject = this.subjectEditor.txt.html()
+                        this.notes.respond = this.respondEditor.txt.html()
+                        this.notes.answer = this.answerEditor.txt.html()
+                        this.notes.summary = this.summaryEditor.txt.html()
+
+                        // 调用更新请求
+                        axios({
+                            url: '/notes/updateNotes',
+                            method: 'PUT',
+                            data: this.notes,
+                        }).then((res) => {
+                            console.log(res)
+                            if (res.data != null) {
+                                this.$message({
+                                    type: 'success',
+                                    message: '修改成功!'
+                                })
+                                location.href = 'http://localhost:8080/pages/MyNotes.html'
+                            } else {
+                                this.$message({
+                                    type: 'error',
+                                    message: '修改失败，请稍后重试...'
+                                })
+                            }
+                        })
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '已取消操作'
+                        })
+                    })
+                }
+            },
+            handleCancel() {
+                this.$confirm('是否取消本次操作跳回主页?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    location.href="http://localhost:8080/pages/MyNotes.html"
+                    this.$message({
+                        type: 'success',
+                        message: '取消成功!'
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消操作'
+                    })
+                })
+            },
+            resetAll() {
+                this.$confirm('是否清空目前所有已输入的数据?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.subjectEditor.txt.clear()
+                    this.answerEditor.txt.clear()
+                    this.respondEditor.txt.clear()
+                    this.summaryEditor.txt.clear()
+
+                    this.notes.notesTitle = ''
+                    this.notes.priority = ''
+                    this.notes.notesGroup = ''
+
+                    this.$message({
+                        type: 'success',
+                        message: '清空成功!'
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消操作'
+                    })
+                })
+            },
+            // 创建富文本编辑器
+            createEditor() {
+                // 创建四个富文本编辑器
+                this.subjectEditor = new E('#subject')
+                this.respondEditor = new E('#respond')
+                this.answerEditor = new E('#answer')
+                this.summaryEditor = new E('#summary')
+
+                this.initEditor(this.subjectEditor)
+                this.initEditor(this.respondEditor)
+                this.initEditor(this.answerEditor)
+                this.initEditor(this.summaryEditor)
+
+                this.subjectEditor.create();
+                this.respondEditor.create();
+                this.answerEditor.create();
+                this.summaryEditor.create();
+            },
+            // 初始化富文本编辑器
+            initEditor(e, type) {
+                e.config.width = 1100
+                e.config.height = 500
+                e.config.uploadImgServer = 'http://localhost:8080/file/upload'// 填写配置服务器端地址
+                e.config.uploadImgHeaders = {
+                    'Accept': 'application/json, text/plain, */*',
+                    'Access-Control-Allow-Origin': '*'
+                } // 自定义 header
+
+                e.config.uploadFileName = 'imgFile' // 后端接受上传文件的参数名
+                e.config.uploadImgMaxSize = 4 * 1024 * 1024 // 将图片大小限制为 4M
+                e.config.uploadImgMaxLength = 6 // 限制一次最多上传 6 张图片
+
+                // 定义富文本编辑器图片上传钩子对象
+                e.config.uploadImgHooks = {
+                    fail: (xhr, editor, result) => {
+                        // 插入图片失败回调
+                        console.log(xhr)
+                        console.log(result)
+                    },
+                    success: (xhr, editor, result) => {
+                        // 图片上传成功回调
+                        console.log(xhr)
+                        console.log(result)
+                    },
+                    timeout: (xhr, editor) => {
+                        // 网络超时的回调
+                        console.log(xhr)
+
+                    },
+                    error: (xhr, editor) => {
+                        // 图片上传错误的回调
+                        console.log(xhr)
+                    },
+                    customInsert: (insertImg, result, editor) => {
+                        console.log(result)
+                        var url = result.url
+                        insertImg(url)
+                    }
+                }
+            }
+        },
+        created() {
+            // 获取当前的发布者账号
+            let onlineUser = window.parent.getOnlineUser()
+            this.notes.promulgator = onlineUser.account
+        },
+        mounted() {
+            // 创建四个富文本编辑器
+            this.createEditor()
+            // 获取传来的错题id 并根据此id查询错题 回显其所有内容
+            var curId = localStorage.getItem('curRowId')
+
+            axios({
+                method: 'GET',
+                url: `/notes/getNotesById/${curId}`
+            }).then(res => {
+                // 数据回显
+                this.notes = res.data
+                this.subjectEditor.txt.html(res.data.subject)
+                this.respondEditor.txt.html(res.data.respond)
+                this.answerEditor.txt.html(res.data.answer)
+                this.summaryEditor.txt.html(res.data.summary)
+            })
+        },
+        beforeDestroy() {
+            if (this.subjectEditor) {
+                this.subjectEditor.destroy()
+                this.subjectEditor = null
+            }
+            if (this.respondEditor) {
+                this.respondEditor.destroy()
+                this.respondEditor = null
+            }
+            if (this.answerEditor) {
+                this.answerEditor.destroy()
+                this.answerEditor = null
+            }
+            if (this.summaryEditor) {
+                this.summaryEditor.destroy()
+                this.summaryEditor = null
+            }
+        }
+    })
+</script>
+</html>
